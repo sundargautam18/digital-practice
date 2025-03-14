@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,21 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-  deploy:
-    needs: build
+  deploy-app:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@master
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Deploy the app
+        uses: digitalocean/app_action/deploy@v2
         with:
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USER }}
-          key: ${{ secrets.DO_SSH_KEY }}
-          script: |
-            cd /app
-            git pull origin main
-            docker build -t node-cicd .
-            docker stop node-cicd || true
-            docker rm node-cicd || true
-            docker run -d -p 3000:3000 --name node-cicd node-cicd
+          token: ${{ secrets.YOUR_DIGITALOCEAN_ACCESS_TOKEN_VARIABLE_NAME }}
